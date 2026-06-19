@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>책방 온도 — 당신의 감성 책 큐레이터</title>
+
+  <!-- PWA 설정 -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#C17B5C" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="책방온도" />
+
+  <!-- 구글 폰트: 제목용 Noto Serif KR, 본문용 Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- ───────────────────────────────────────────
+       카카오 SDK (기능 2: 카카오톡 공유하기에 사용)
+       아래 줄의 주석을 지우고 사용하세요.
+       카카오 개발자 사이트(https://developers.kakao.com)에서
+       앱을 등록한 뒤 JavaScript 앱 키를 발급받으세요.
+  ─────────────────────────────────────────────── -->
+  <!-- <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script> -->
+
+  <style>
+    /* ══════════════════════════════════════════
+       토큰 시스템 (라이트 / 다크 모드)
+    ══════════════════════════════════════════ */
+    :root {
+      --bg:        #FAF7F2;
+      --bg2:       #F0EBE3;
+      --surface:   #FFFFFF;
+      --border:    #E2D9CF;
+      --text:      #2C2420;
+      --text-sub:  #7A6A5E;
+      --accent:    #C17B5C;       /* 테라코타 웜 */
+      --accent2:   #7C9E8F;       /* 세이지 그린 */
+      --accent3:   #9B7BB5;       /* 라벤더 */
+      --tag-bg:    #EDE8E0;
+      --card-shadow: 0 4px 24px rgba(100,70,50,0.08);
+      --radius:    16px;
+      --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+
+      /* 감정 테마 오버라이드용 (기능 4) */
+      --emotion-bg: var(--bg);
+    }
+    [data-theme="dark"] {
+      --bg:        #1C1814;
+      --bg2:       #252018;
+      --surface:   #2E2820;
+      --border:    #3D3328;
+      --text:      #F0E8DE;
+      --text-sub:  #9C8E80;
+      --accent:    #D4956E;
+      --accent2:   #8BB8A6;
+      --accent3:   #B49BCF;
+      --tag-bg:    #36302A;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    }
+
+    /* ══════════════════════════════════════════
+       리셋 & 기본
+    ══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      background: var(--emotion-bg);
+      color: var(--text);
+      line-height: 1.75;
+      transition: background var(--transition), color var(--transition);
+      min-height: 100vh;
+    }
+
+    /* ══════════════════════════════════════════
+       상단 헤더
+    ══════════════════════════════════════════ */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      padding: 0 clamp(16px, 5vw, 60px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      transition: background var(--transition);
+    }
+    .logo {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .dark-toggle {
+      background: var(--tag-bg);
+      border: none;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background var(--transition);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dark-toggle:hover { background: var(--border); }
+
+    /* ══════════════════════════════════════════
+       히어로 섹션
+    ══════════════════════════════════════════ */
+    .hero {
+      text-align: center;
+      padding: clamp(48px,10vw,100px) clamp(16px,5vw,60px) clamp(32px,6vw,60px);
+      background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      padding: 6px 14px;
+      border-radius: 100px;
+    }
+    .hero h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+    .hero h1 em::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: 2px;
+      width: 100%; height: 3px;
+      background: var(--accent);
+      opacity: 0.35;
+      border-radius: 2px;
+    }
+    .hero p {
+      color: var(--text-sub);
+      font-size: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ══════════════════════════════════════════
+       탭 네비게이션
+    ══════════════════════════════════════════ */
+    .tab-nav {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 clamp(16px,5vw,60px);
+      margin-bottom: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 16px 20px 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-sub);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition);
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ══════════════════════════════════════════
+       탭 패널
+    ══════════════════════════════════════════ */
+    .tab-panel { display: none; animation: fadeUp 0.4s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(14px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .panel-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: clamp(28px,6vw,60px) clamp(16px,5vw,60px);
+    }
+    .section-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .section-desc {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════════
+       기능 1: 감성 태그
+    ══════════════════════════════════════════ */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .tag {
+      padding: 9px 18px;
+      background: var(--tag-bg);
+      border: 1.5px solid transparent;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--text-sub);
+    }
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+    .tag.selected {
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* 도서 카드 그리드 */
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .book-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .book-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(100,70,50,0.14); }
+    .book-cover {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, var(--bg2) 0%, var(--tag-bg) 100%);
+    }
+    .book-cover-placeholder {
+      width: 100%;
+      aspect-ratio: 2/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      background: linear-gradient(135deg, var(--bg2) 0%, var(--tag-bg) 100%);
+      color: var(--text-sub);
+    }
+    .book-info { padding: 14px 16px 16px; }
+    .book-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .book-author { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
+    .book-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .book-tag-small {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: var(--tag-bg);
+      border-radius: 100px;
+      color: var(--text-sub);
+    }
+    .no-books {
+      grid-column: 1/-1;
+      text-align: center;
+      color: var(--text-sub);
+      padding: 60px 0;
+      font-size: 15px;
+    }
+    .no-books .icon { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    /* ══════════════════════════════════════════
+       기능 2: 심리 테스트
+    ══════════════════════════════════════════ */
+    .quiz-wrapper { max-width: 600px; }
+    .quiz-progress {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+    .progress-dot {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background var(--transition);
+    }
+    .progress-dot.done { background: var(--accent); }
+    .progress-dot.active { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+
+    .quiz-question {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(17px, 2.5vw, 22px);
+      font-weight: 700;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+    .quiz-option {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: left;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .quiz-option:hover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    }
+    .quiz-option.chosen {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+      font-weight: 500;
+    }
+
+    /* 결과 카드 */
+    .result-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .result-badge {
+      display: inline-block;
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .result-type {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .result-desc {
+      color: var(--text-sub);
+      font-size: 14px;
+      line-height: 1.8;
+      max-width: 420px;
+      margin: 0 auto 24px;
+    }
+    .result-rec-title {
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+    }
+    .result-books {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .result-book-chip {
+      background: var(--tag-bg);
+      border-radius: 100px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: 100px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+      margin-top: 12px;
+    }
+    .btn-kakao:hover { opacity: 0.88; }
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text-sub);
+      margin-top: 8px;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ══════════════════════════════════════════
+       기능 3: 유사 도서 탐색기
+    ══════════════════════════════════════════ */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      background: var(--surface);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .search-input::placeholder { color: var(--text-sub); }
+    .search-input:focus { border-color: var(--accent); }
+    .search-btn {
+      padding: 14px 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity var(--transition);
+      white-space: nowrap;
+    }
+    .search-btn:hover { opacity: 0.88; }
+    .search-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .match-info {
+      background: color-mix(in srgb, var(--accent2) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent2) 30%, transparent);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .match-info-icon { font-size: 28px; flex-shrink: 0; }
+    .match-info-text { font-size: 14px; color: var(--text-sub); line-height: 1.7; }
+    .match-info-text strong { color: var(--text); }
+
+    .match-score {
+      display: inline-block;
+      background: var(--accent2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 6px;
+    }
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-sub);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══════════════════════════════════════════
+       기능 4: 감정 일기 북테라피
+    ══════════════════════════════════════════ */
+    .diary-area {
+      width: 100%;
+      min-height: 180px;
+      padding: 20px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.9;
+      resize: vertical;
+      outline: none;
+      transition: border-color var(--transition);
+      margin-bottom: 16px;
+    }
+    .diary-area::placeholder { color: var(--text-sub); }
+    .diary-area:focus { border-color: var(--accent); }
+    .diary-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .char-count { font-size: 12px; color: var(--text-sub); }
+
+    .emotion-result {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px;
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 28px;
+      display: none;
+    }
+    .emotion-result.visible { display: block; }
+    .emotion-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .emotion-icon { font-size: 40px; }
+    .emotion-label {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .emotion-text {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .emotion-theme-bar {
+      height: 6px;
+      border-radius: 3px;
+      margin-bottom: 6px;
+      transition: background 0.8s ease;
+    }
+    .emotion-theme-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════════════════════════════════
+       공통 유틸
+    ══════════════════════════════════════════ */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 32px 0;
+    }
+    .text-accent { color: var(--accent); }
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .gap-8 { gap: 8px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+
+    /* ══════════════════════════════════════════
+       반응형
+    ══════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .book-grid { grid-template-columns: repeat(2, 1fr); }
+      .result-card { padding: 24px 20px; }
+      .search-bar { flex-direction: column; }
+      .search-btn { border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ────────── 헤더 ────────── -->
+<header>
+  <a class="logo" href="#">책방<span>온도</span></a>
+  <div class="header-right">
+    <button class="dark-toggle" id="darkToggle" title="다크모드 전환">🌙</button>
+  </div>
+</header>
+
+<!-- ────────── 히어로 ────────── -->
+<section class="hero">
+  <span class="hero-eyebrow">감성 책 큐레이터</span>
+  <h1>오늘 당신의 마음에<br><em>꼭 맞는 책</em>이 있어요</h1>
+  <p>감성 태그, 심리 테스트, AI 유사책 탐색, 감정 일기까지 —<br>나만을 위한 독서 여정을 시작하세요.</p>
+</section>
+
+<!-- ────────── 탭 네비 ────────── -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab1">📚 감성 태그 추천</button>
+  <button class="tab-btn" data-tab="tab2">🧠 독서 심리테스트</button>
+  <button class="tab-btn" data-tab="tab3">🔍 유사 도서 탐색</button>
+  <button class="tab-btn" data-tab="tab4">📖 감정 일기 북테라피</button>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     기능 1: 감성 태그 기반 추천
+══════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab1">
+  <div class="panel-inner">
+    <h2 class="section-title">지금 이 느낌이에요</h2>
+    <p class="section-desc">원하는 무드 태그를 클릭하면 딱 맞는 책을 골라드려요. 여러 개 선택도 가능해요.</p>
+
+    <div class="tag-cloud" id="tagCloud">
+      <!-- 태그는 JS에서 자동으로 생성됩니다 -->
+    </div>
+
+    <div class="book-grid" id="bookGrid">
+      <div class="no-books">
+        <span class="icon">☝️</span>
+        위에서 태그를 선택하면 추천 책이 나타나요
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     기능 2: 독서 심리 테스트
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab2">
+  <div class="panel-inner">
+    <h2 class="section-title">나만의 독서 유형은?</h2>
+    <p class="section-desc">5가지 질문으로 당신의 숨겨진 독서 성향을 발견해보세요.</p>
+
+    <!-- 진행도 -->
+    <div class="quiz-progress" id="quizProgress"></div>
+
+    <!-- 질문 영역 -->
+    <div id="quizArea">
+      <p class="quiz-question" id="quizQuestion"></p>
+      <div class="quiz-options" id="quizOptions"></div>
+    </div>
+
+    <!-- 결과 영역 (처음엔 숨김) -->
+    <div id="quizResult" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     기능 3: 유사 도서 탐색기
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab3">
+  <div class="panel-inner">
+    <h2 class="section-title">인생 책과 닮은 숨은 명작 찾기</h2>
+    <p class="section-desc">가장 재밌게 읽은 책 제목을 입력하면 비슷한 책을 찾아드릴게요.</p>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        class="search-input"
+        id="bookSearch"
+        placeholder="예: 채식주의자, 아몬드, 82년생 김지영 …"
+      />
+      <button class="search-btn" id="searchBtn" onclick="searchSimilarBooks()">🔍 탐색하기</button>
+    </div>
+
+    <!-- API 안내 박스 -->
+    <div class="match-info" id="apiNotice">
+      <span class="match-info-icon">💡</span>
+      <div class="match-info-text">
+        <strong>개발자를 위한 안내</strong><br>
+        이 탐색기는 <strong>Google Books API</strong> 또는 <strong>알라딘 API</strong>와 연결할 수 있어요.
+        아래 코드에서 <code>YOUR_API_KEY</code>를 실제 키로 교체하면 실시간 검색이 됩니다.
+        지금은 샘플 데이터로 작동합니다.
+      </div>
+    </div>
+
+    <div class="loading-spinner" id="searchLoading">
+      <div class="spinner"></div>
+      <p>유사한 책을 찾고 있어요…</p>
+    </div>
+
+    <div class="book-grid" id="similarBooksGrid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     기능 4: 감정 일기 북테라피
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab4">
+  <div class="panel-inner">
+    <h2 class="section-title">오늘 마음 한 줄</h2>
+    <p class="section-desc">지금 느끼는 감정을 자유롭게 적어보세요. 감정을 분석해 어울리는 책을 추천해 드릴게요.</p>
+
+    <textarea
+      class="diary-area"
+      id="diaryInput"
+      placeholder="예: 오늘은 왠지 모르게 아무것도 하기 싫고 공허하다. 모든 게 다 귀찮고 의욕이 없어..."
+    ></textarea>
+    <div class="diary-footer">
+      <span class="char-count" id="charCount">0자</span>
+      <button class="btn btn-primary" onclick="analyzeDiary()">✨ 감정 분석하기</button>
+    </div>
+
+    <!-- 감정 분석 결과 -->
+    <div class="emotion-result" id="emotionResult">
+      <div class="emotion-badge">
+        <span class="emotion-icon" id="emotionIcon">😶</span>
+        <div>
+          <div class="emotion-label" id="emotionLabel">감정 분석 중</div>
+          <div style="font-size:12px;color:var(--text-sub);">오늘의 감정 온도</div>
+        </div>
+      </div>
+      <p class="emotion-text" id="emotionText"></p>
+      <div class="emotion-theme-bar" id="emotionBar"></div>
+      <div class="emotion-theme-label" id="emotionThemeLabel"></div>
+
+      <div class="divider"></div>
+      <h3 style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;margin-bottom:16px;">
+        지금 당신에게 필요한 책
+      </h3>
+      <div class="book-grid" id="emotionBooks"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     자바스크립트 전체
+══════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────
+   📌 데이터: 감성 태그 & 도서 목록
+   여기에 원하는 책과 태그를 추가하세요!
+────────────────────────────────────────── */
+const TAGS = [
+  '잔잔한 소설', '매운맛 추리극', '위로받고 싶은 밤', '설레는 로맨스',
+  '철학적 사색', '가볍게 웃고 싶어', '성장 이야기', '가슴 먹먹한',
+  '판타지 세계로', '어른이 되는 시간', '동양 문학', '서늘한 공포'
+];
+
+const BOOKS = [
+  {
+    title: '아몬드',
+    author: '손원평',
+    emoji: '🌰',
+    tags: ['잔잔한 소설', '성장 이야기', '어른이 되는 시간'],
+    desc: '감정을 느끼지 못하는 소년의 성장기'
+  },
+  {
+    title: '채식주의자',
+    author: '한강',
+    emoji: '🌿',
+    tags: ['철학적 사색', '가슴 먹먹한', '동양 문학'],
+    desc: '욕망과 금기 사이의 충격적 서사'
+  },
+  {
+    title: '나미야 잡화점의 기적',
+    author: '히가시노 게이고',
+    emoji: '✉️',
+    tags: ['위로받고 싶은 밤', '잔잔한 소설', '가슴 먹먹한'],
+    desc: '시간을 초월한 편지와 위로의 이야기'
+  },
+  {
+    title: '82년생 김지영',
+    author: '조남주',
+    emoji: '👩',
+    tags: ['성장 이야기', '어른이 되는 시간', '가슴 먹먹한'],
+    desc: '한 평범한 여성의 삶을 통해 보는 사회'
+  },
+  {
+    title: '살인자의 기억법',
+    author: '김영하',
+    emoji: '🔪',
+    tags: ['매운맛 추리극', '서늘한 공포'],
+    desc: '치매 연쇄살인마의 섬뜩한 독백'
+  },
+  {
+    title: '지구 끝의 온실',
+    author: '김초엽',
+    emoji: '🌐',
+    tags: ['판타지 세계로', '철학적 사색', '성장 이야기'],
+    desc: '멸망 이후 세계를 살아가는 이들의 이야기'
+  },
+  {
+    title: '달러구트 꿈 백화점',
+    author: '이미예',
+    emoji: '🏪',
+    tags: ['가볍게 웃고 싶어', '위로받고 싶은 밤', '판타지 세계로'],
+    desc: '꿈을 사고파는 백화점의 따뜻한 이야기'
+  },
+  {
+    title: '괜찮아, 사랑이야',
+    author: '노희경',
+    emoji: '💙',
+    tags: ['설레는 로맨스', '위로받고 싶은 밤'],
+    desc: '상처받은 두 영혼이 서로를 치유하는 이야기'
+  },
+  {
+    title: '소년이 온다',
+    author: '한강',
+    emoji: '🕯️',
+    tags: ['가슴 먹먹한', '동양 문학', '철학적 사색'],
+    desc: '5·18의 기억, 폭력과 인간성에 대한 응시'
+  },
+  {
+    title: '파친코',
+    author: '이민진',
+    emoji: '🎰',
+    tags: ['어른이 되는 시간', '가슴 먹먹한', '동양 문학'],
+    desc: '4대에 걸친 재일조선인 가족의 장대한 서사'
+  },
+  {
+    title: '김지하 시선집',
+    author: '김지하',
+    emoji: '🎭',
+    tags: ['철학적 사색', '동양 문학'],
+    desc: '저항과 생명 사상이 담긴 한국 현대시'
+  },
+  {
+    title: '편의점 인간',
+    author: '무라타 사야카',
+    emoji: '🏪',
+    tags: ['가볍게 웃고 싶어', '철학적 사색', '잔잔한 소설'],
+    desc: '사회 규범과 나 사이에서 흔들리는 웃픈 이야기'
+  }
+];
+
+/* ──────────────────────────────────────────
+   📌 데이터: 독서 심리 테스트 (기능 2)
+   질문과 보기를 자유롭게 수정하세요!
+────────────────────────────────────────── */
+const QUIZ_DATA = [
+  {
+    q: '주말 오후, 가장 이상적인 시간 보내기는?',
+    options: [
+      { text: '이불 속에서 책 한 권과 함께', type: 'cozy' },
+      { text: '카페에서 노트북 펼치고 뭔가 만들기', type: 'creative' },
+      { text: '친구들과 수다 떨며 에너지 충전', type: 'social' },
+      { text: '혼자 조용히 산책하며 생각 정리', type: 'reflective' }
+    ]
+  },
+  {
+    q: '소설 읽다가 책을 덮게 만드는 장면은?',
+    options: [
+      { text: '주인공이 배신당하는 반전', type: 'thrilling' },
+      { text: '인물들이 끝없이 대화만 나눌 때', type: 'cozy' },
+      { text: '지나치게 잔인하거나 자극적인 묘사', type: 'reflective' },
+      { text: '뻔한 해피엔딩', type: 'creative' }
+    ]
+  },
+  {
+    q: '지금 당장 여행을 떠난다면?',
+    options: [
+      { text: '느릿느릿 시골 마을 책방 투어', type: 'cozy' },
+      { text: '낯선 도시에서 길 잃어보기', type: 'thrilling' },
+      { text: '미술관·박물관 순례', type: 'creative' },
+      { text: '바닷가에서 멍때리기', type: 'reflective' }
+    ]
+  },
+  {
+    q: '나는 주로 어떤 감정으로 책을 읽는가?',
+    options: [
+      { text: '등장인물에게 완전히 감정이입해서', type: 'social' },
+      { text: '작가의 문장력과 구성을 분석하며', type: 'creative' },
+      { text: '내 삶과 비교하며 위로받으려고', type: 'reflective' },
+      { text: '다음에 무슨 일이 생길지 두근거리며', type: 'thrilling' }
+    ]
+  },
+  {
+    q: '가장 끌리는 첫 문장은?',
+    options: [
+      { text: '"그는 35살이 되던 해, 모든 것을 잃었다."', type: 'thrilling' },
+      { text: '"할머니는 항상 해질 무렵 마당을 쓸었다."', type: 'cozy' },
+      { text: '"나는 아름다움이 두렵다."', type: 'reflective' },
+      { text: '"세계가 끝났을 때 우리는 식물원에 있었다."', type: 'creative' }
+    ]
+  }
+];
+
+const QUIZ_RESULTS = {
+  cozy: {
+    badge: '🍵',
+    type: '따뜻한 일상 수집가',
+    desc: '당신은 잔잔한 일상과 소소한 감동을 좋아하는 독자예요. 화려한 사건보다 인물의 내면을 섬세하게 그린 소설에서 더 큰 울림을 느끼죠. 겨울 오후 따뜻한 차 한 잔과 함께 읽을 책이 가장 잘 어울려요.',
+    books: ['나미야 잡화점의 기적', '달러구트 꿈 백화점', '아몬드']
+  },
+  thrilling: {
+    badge: '🎢',
+    type: '스릴 중독 미스터리 사냥꾼',
+    desc: '당신은 예측 불가한 전개와 긴장감을 즐기는 독자예요. 반전이 없으면 심심하고, 다음 페이지가 궁금해서 밥도 못 먹는 타입이죠. 추리소설과 스릴러가 천직이에요.',
+    books: ['살인자의 기억법', '채식주의자', '파친코']
+  },
+  creative: {
+    badge: '🎨',
+    type: '실험적 문학 탐험가',
+    desc: '당신은 문체와 형식 자체를 즐기는 독자예요. 똑같은 이야기도 작가가 어떻게 쓰느냐가 더 중요하죠. 순문학부터 SF까지, 장르의 경계를 넘나드는 실험적 소설에 끌려요.',
+    books: ['지구 끝의 온실', '편의점 인간', '소년이 온다']
+  },
+  reflective: {
+    badge: '🌌',
+    type: '고요한 내면 탐구자',
+    desc: '당신은 책을 통해 자신을 들여다보는 독자예요. 이야기보다 그 안에 담긴 삶의 의미를 찾죠. 철학적이고 사색적인 텍스트에서 오래 머물며 생각하는 타입이에요.',
+    books: ['82년생 김지영', '소년이 온다', '채식주의자']
+  },
+  social: {
+    badge: '💬',
+    type: '공감 능력 만렙 감정 이입러',
+    desc: '당신은 인물과 함께 울고 웃는 독자예요. 등장인물이 행복하면 나도 행복하고, 상처받으면 내 가슴도 아프죠. 인간관계를 섬세하게 그린 소설이 딱 맞아요.',
+    books: ['아몬드', '파친코', '나미야 잡화점의 기적']
+  }
+};
+
+/* ──────────────────────────────────────────
+   📌 데이터: 감정 키워드 & 북테라피 (기능 4)
+────────────────────────────────────────── */
+const EMOTION_MAP = [
+  {
+    keywords: ['우울', '슬프', '눈물', '공허', '허무', '외로', '쓸쓸', '힘들', '지쳐'],
+    emotion: '우울·공허',
+    icon: '🌧️',
+    color: '#7B9EC9',
+    gradient: 'linear-gradient(135deg, #e8f0f7 0%, #c9d8ea 100%)',
+    themeLabel: '차분한 파란빛 테마로 변경됨',
+    message: '지금 많이 힘드시군요. 천천히, 당신의 속도로 괜찮아져도 돼요.',
+    books: [
+      { title: '나미야 잡화점의 기적', author: '히가시노 게이고', emoji: '✉️', desc: '위로받고 싶은 밤에 꼭 맞는 책' },
+      { title: '달러구트 꿈 백화점', author: '이미예', emoji: '🏪', desc: '잠깐 현실에서 벗어나고 싶을 때' },
+      { title: '아몬드', author: '손원평', emoji: '🌰', desc: '타인의 온기가 그리울 때' }
+    ]
+  },
+  {
+    keywords: ['화나', '분노', '짜증', '열받', '억울', '답답', '화가', '싫어'],
+    emotion: '분노·답답함',
+    icon: '🔥',
+    color: '#C17B5C',
+    gradient: 'linear-gradient(135deg, #f7ede8 0%, #e8c9b8 100%)',
+    themeLabel: '따뜻한 테라코타 테마로 변경됨',
+    message: '그 감정, 당연한 거예요. 잠시 책 속으로 도망쳐도 괜찮아요.',
+    books: [
+      { title: '82년생 김지영', author: '조남주', emoji: '👩', desc: '내 분노가 정당하다는 걸 느끼고 싶을 때' },
+      { title: '채식주의자', author: '한강', emoji: '🌿', desc: '저항하고 싶은 마음이 있을 때' },
+      { title: '살인자의 기억법', author: '김영하', emoji: '🔪', desc: '스릴로 감정을 발산하고 싶을 때' }
+    ]
+  },
+  {
+    keywords: ['기쁘', '행복', '설레', '좋아', '신나', '즐거', '웃음', '활기', '에너지'],
+    emotion: '기쁨·설렘',
+    icon: '☀️',
+    color: '#D4A843',
+    gradient: 'linear-gradient(135deg, #fdf6e3 0%, #f5e0a0 100%)',
+    themeLabel: '밝고 따뜻한 골든 테마로 변경됨',
+    message: '이 기분, 오래도록 이어지길 바라요!',
+    books: [
+      { title: '달러구트 꿈 백화점', author: '이미예', emoji: '🏪', desc: '설레는 기분과 완벽한 짝꿍' },
+      { title: '지구 끝의 온실', author: '김초엽', emoji: '🌐', desc: '새로운 세계로 풍덩' },
+      { title: '편의점 인간', author: '무라타 사야카', emoji: '🏪', desc: '유쾌하게 킥킥 웃고 싶을 때' }
+    ]
+  },
+  {
+    keywords: ['불안', '걱정', '두려', '무서', '긴장', '초조', '어떡', '혼란', '모르겠'],
+    emotion: '불안·걱정',
+    icon: '🌀',
+    color: '#7C9E8F',
+    gradient: 'linear-gradient(135deg, #e8f0ee 0%, #c0d6ce 100%)',
+    themeLabel: '차분한 세이지 그린 테마로 변경됨',
+    message: '지금 느끼는 불안은 정상이에요. 잠깐 호흡을 고르고, 책 속에서 쉬어가요.',
+    books: [
+      { title: '파친코', author: '이민진', emoji: '🎰', desc: '나보다 더 험한 파도를 이겨낸 사람들의 이야기' },
+      { title: '소년이 온다', author: '한강', emoji: '🕯️', desc: '두려움 속에서도 존엄을 지킨 이들에게서 용기를' },
+      { title: '아몬드', author: '손원평', emoji: '🌰', desc: '감정이 어색해도 괜찮다는 위로' }
+    ]
+  },
+  {
+    keywords: ['지침', '피곤', '무기력', '쉬고', '귀찮', '아무것도', '의욕', '번아웃'],
+    emotion: '무기력·소진',
+    icon: '🍂',
+    color: '#9B7BB5',
+    gradient: 'linear-gradient(135deg, #f0ebf7 0%, #d9cde8 100%)',
+    themeLabel: '포근한 라벤더 테마로 변경됨',
+    message: '쉬는 것도 삶의 일부예요. 가볍고 따뜻한 책 한 권이 당신 곁에 있을게요.',
+    books: [
+      { title: '달러구트 꿈 백화점', author: '이미예', emoji: '🏪', desc: '꿈처럼 가볍게 읽히는 힐링 판타지' },
+      { title: '나미야 잡화점의 기적', author: '히가시노 게이고', emoji: '✉️', desc: '잔잔한 온기가 필요한 밤에' },
+      { title: '편의점 인간', author: '무라타 사야카', emoji: '🏪', desc: '우리 모두 조금씩 이상하다는 위로' }
+    ]
+  }
+];
+
+/* ════════════════════════════════════════════
+   공통: 다크모드 토글
+════════════════════════════════════════════ */
+const html = document.documentElement;
+const darkToggle = document.getElementById('darkToggle');
+let isDark = false;
+
+darkToggle.addEventListener('click', () => {
+  isDark = !isDark;
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  darkToggle.textContent = isDark ? '☀️' : '🌙';
+});
+
+/* ════════════════════════════════════════════
+   공통: 탭 전환
+════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+/* ════════════════════════════════════════════
+   기능 1: 감성 태그 추천
+════════════════════════════════════════════ */
+const selectedTags = new Set();
+
+function renderTags() {
+  const cloud = document.getElementById('tagCloud');
+  cloud.innerHTML = '';
+  TAGS.forEach(tag => {
+    const el = document.createElement('button');
+    el.className = 'tag' + (selectedTags.has(tag) ? ' selected' : '');
+    el.textContent = tag;
+    el.addEventListener('click', () => toggleTag(tag, el));
+    cloud.appendChild(el);
+  });
+}
+
+function toggleTag(tag, el) {
+  if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+    el.classList.remove('selected');
+  } else {
+    selectedTags.add(tag);
+    el.classList.add('selected');
+  }
+  renderBookGrid();
+}
+
+function renderBookGrid() {
+  const grid = document.getElementById('bookGrid');
+  if (selectedTags.size === 0) {
+    grid.innerHTML = '<div class="no-books"><span class="icon">☝️</span>위에서 태그를 선택하면 추천 책이 나타나요</div>';
+    return;
+  }
+  const matched = BOOKS.filter(book => book.tags.some(t => selectedTags.has(t)));
+  if (matched.length === 0) {
+    grid.innerHTML = '<div class="no-books"><span class="icon">🔎</span>선택한 태그와 맞는 책을 준비 중이에요</div>';
+    return;
+  }
+  grid.innerHTML = matched.map(book => `
+    <div class="book-card">
+      <div class="book-cover-placeholder">${book.emoji}</div>
+      <div class="book-info">
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+        <div class="book-tags">
+          ${book.tags.slice(0,2).map(t => `<span class="book-tag-small">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderTags();
+renderBookGrid();
+
+/* ════════════════════════════════════════════
+   기능 2: 독서 심리 테스트
+════════════════════════════════════════════ */
+let currentQ = 0;
+const answers = {};
+
+function initQuiz() {
+  currentQ = 0;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  document.getElementById('quizArea').style.display = '';
+  document.getElementById('quizResult').style.display = 'none';
+  renderProgress();
+  renderQuestion();
+}
+
+function renderProgress() {
+  const bar = document.getElementById('quizProgress');
+  bar.innerHTML = QUIZ_DATA.map((_, i) => {
+    let cls = 'progress-dot';
+    if (i < currentQ) cls += ' done';
+    else if (i === currentQ) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderQuestion() {
+  const qData = QUIZ_DATA[currentQ];
+  document.getElementById('quizQuestion').textContent = `Q${currentQ + 1}. ${qData.q}`;
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML = '';
+  qData.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.text;
+    btn.addEventListener('click', () => selectOption(opt.type, btn));
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(type, btn) {
+  // 이미 선택된 버튼 표시
+  document.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  answers[currentQ] = type;
+
+  // 0.5초 후 다음으로
+  setTimeout(() => {
+    currentQ++;
+    renderProgress();
+    if (currentQ < QUIZ_DATA.length) {
+      renderQuestion();
+    } else {
+      showQuizResult();
+    }
+  }, 500);
+}
+
+function showQuizResult() {
+  // 가장 많이 선택된 유형 집계
+  const count = {};
+  Object.values(answers).forEach(t => { count[t] = (count[t] || 0) + 1; });
+  const topType = Object.entries(count).sort((a,b) => b[1]-a[1])[0][0];
+  const result = QUIZ_RESULTS[topType] || QUIZ_RESULTS.reflective;
+
+  document.getElementById('quizArea').style.display = 'none';
+  const resultDiv = document.getElementById('quizResult');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = `
+    <div class="result-card">
+      <div class="result-badge">${result.badge}</div>
+      <div class="result-type">${result.type}</div>
+      <p class="result-desc">${result.desc}</p>
+      <div class="result-rec-title">이런 책이 딱 맞아요</div>
+      <div class="result-books">
+        ${result.books.map(b => `<span class="result-book-chip">📖 ${b}</span>`).join('')}
+      </div>
+
+      <!-- 카카오톡 공유 버튼 -->
+      <div>
+        <button class="btn btn-kakao" onclick="shareKakao('${result.type}', '${result.badge}')">
+          💬 카카오톡으로 결과 공유하기
+        </button>
+      </div>
+      <div>
+        <button class="btn btn-ghost" onclick="initQuiz()">🔄 다시 테스트하기</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ────────────────────────────────────────────
+   카카오톡 공유하기 함수
+   ★ 사용 방법:
+   1. https://developers.kakao.com 에서 앱 등록
+   2. JavaScript 앱 키를 발급받아 아래 'YOUR_KAKAO_JS_KEY'를 교체
+   3. 상단 SDK 스크립트 주석 해제
+   ─────────────────────────────────────────── */
+function shareKakao(resultType, emoji) {
+  // ─── 카카오 SDK가 로드된 경우 (주석 해제 후 사용) ───
+  // Kakao.init('YOUR_KAKAO_JS_KEY'); // ← 여기에 발급받은 앱 키를 넣으세요!
+  // Kakao.Share.sendDefault({
+  //   objectType: 'text',
+  //   text: `[책방온도 독서 유형 테스트]\n나의 독서 유형은 ${emoji} "${resultType}"!\n당신의 독서 유형도 알아보세요 🔖`,
+  //   link: {
+  //     mobileWebUrl: window.location.href, // 실제 배포 URL로 교체
+  //     webUrl: window.location.href
+  //   }
+  // });
+
+  // ─── SDK 미연동 시: URL 복사로 대체 ───
+  const text = `[책방온도 독서 유형] 나의 독서 유형은 ${emoji} "${resultType}"! 당신도 테스트해보세요 → ${window.location.href}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() =>
+      alert('📋 결과 텍스트가 복사됐어요! 카카오톡에 붙여넣기 해보세요.\n\n💡 카카오 SDK 설정 후 직접 공유도 가능합니다.')
+    );
+  } else {
+    alert('카카오 SDK를 연동하면 바로 공유할 수 있어요!\n📌 index.html 상단의 주석을 확인해주세요.');
+  }
+}
+
+// 페이지 로드 시 퀴즈 초기화
+initQuiz();
+
+/* ════════════════════════════════════════════
+   기능 3: 유사 도서 탐색기 (API 연동 구조)
+════════════════════════════════════════════ */
+
+/*
+ * ──────────────────────────────────────────────────
+ * 📌 Google Books API 연동 방법
+ * 1. https://console.cloud.google.com 에서 프로젝트 생성
+ * 2. "Books API" 활성화
+ * 3. API 키 발급 → 아래 const GOOGLE_BOOKS_API_KEY 에 넣기
+ * ──────────────────────────────────────────────────
+ */
+const GOOGLE_BOOKS_API_KEY = 'YOUR_API_KEY_HERE'; // ← 여기에 Google Books API 키를 넣으세요
+
+/*
+ * ──────────────────────────────────────────────────
+ * 📌 알라딘 API 연동 방법 (국내 서점)
+ * 1. https://www.aladin.co.kr/ttb/wblog_manage.aspx 에서 신청
+ * 2. TTBKey 발급 → 아래 const ALADIN_TTB_KEY 에 넣기
+ * ──────────────────────────────────────────────────
+ */
+const ALADIN_TTB_KEY = 'YOUR_ALADIN_KEY_HERE'; // ← 여기에 알라딘 API 키를 넣으세요
+
+// 샘플 유사 도서 데이터 (API 키 없이도 동작)
+const SIMILAR_BOOKS_SAMPLE = {
+  '아몬드': [
+    { title: '완전한 행복', author: '정유정', emoji: '😶', similarity: 92, desc: '감정의 결핍과 인간 관계를 파헤치는 소설' },
+    { title: '우아한 거짓말', author: '김려령', emoji: '🤫', similarity: 87, desc: '섬세한 심리 묘사와 성장통의 이야기' },
+    { title: '82년생 김지영', author: '조남주', emoji: '👩', similarity: 81, desc: '평범한 삶 속의 비범한 감정들' }
+  ],
+  '채식주의자': [
+    { title: '흰', author: '한강', emoji: '⬜', similarity: 95, desc: '한강의 실험적이고 아름다운 산문시' },
+    { title: '소년이 온다', author: '한강', emoji: '🕯️', similarity: 90, desc: '폭력과 인간성에 대한 뜨거운 응시' },
+    { title: '파친코', author: '이민진', emoji: '🎰', similarity: 82, desc: '사회 속 개인의 투쟁과 정체성' }
+  ],
+  '기본': [
+    { title: '지구 끝의 온실', author: '김초엽', emoji: '🌐', similarity: 88, desc: '탁월한 세계관 구축과 서정적 문체' },
+    { title: '달러구트 꿈 백화점', author: '이미예', emoji: '🏪', similarity: 84, desc: '따뜻하고 몽환적인 힐링 판타지' },
+    { title: '편의점 인간', author: '무라타 사야카', emoji: '🏪', similarity: 79, desc: '사회 규범에 대한 유쾌한 저항' }
+  ]
+};
+
+async function searchSimilarBooks() {
+  const query = document.getElementById('bookSearch').value.trim();
+  if (!query) {
+    alert('책 제목을 입력해주세요!');
+    return;
+  }
+
+  const btn = document.getElementById('searchBtn');
+  const loading = document.getElementById('searchLoading');
+  const grid = document.getElementById('similarBooksGrid');
+  const notice = document.getElementById('apiNotice');
+
+  btn.disabled = true;
+  loading.style.display = 'block';
+  grid.innerHTML = '';
+  notice.style.display = 'none';
+
+  // ── API 키가 있으면 실제 검색, 없으면 샘플 데이터 사용 ──
+  if (GOOGLE_BOOKS_API_KEY !== 'YOUR_API_KEY_HERE') {
+    // ✅ 실제 Google Books API 호출 (키 입력 후 활성화됨)
+    await fetchGoogleBooks(query, grid, loading, btn);
+  } else {
+    // 🔄 샘플 데이터 시뮬레이션 (API 키 없이도 동작)
+    await simulateSearch(query, grid, loading, btn);
+  }
+}
+
+/* ─ Google Books API fetch 함수 ─
+   ★ API 키를 설정하면 이 함수가 실행됩니다.
+   검색어와 유사한 도서를 Google Books에서 가져옵니다. */
+async function fetchGoogleBooks(query, grid, loading, btn) {
+  try {
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=6&langRestrict=ko&key=${GOOGLE_BOOKS_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.items && data.items.length > 0) {
+      grid.innerHTML = data.items.map(item => {
+        const info = item.volumeInfo;
+        const thumbnail = info.imageLinks?.thumbnail || '';
+        const title = info.title || '제목 없음';
+        const author = (info.authors || []).join(', ') || '저자 미상';
+        const desc = (info.description || '설명이 없습니다.').slice(0, 60) + '…';
+        return `
+          <div class="book-card">
+            ${thumbnail
+              ? `<img src="${thumbnail}" class="book-cover" alt="${title}" loading="lazy">`
+              : `<div class="book-cover-placeholder">📚</div>`}
+            <div class="book-info">
+              <div class="book-title">${title}</div>
+              <div class="book-author">${author}</div>
+              <div style="font-size:12px;color:var(--text-sub);margin-top:4px;">${desc}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      grid.innerHTML = '<div class="no-books"><span class="icon">🔎</span>검색 결과가 없어요. 다른 책 제목을 시도해보세요.</div>';
+    }
+  } catch (err) {
+    grid.innerHTML = '<div class="no-books"><span class="icon">⚠️</span>검색 중 오류가 발생했어요. API 키를 확인해주세요.</div>';
+  }
+  loading.style.display = 'none';
+  btn.disabled = false;
+}
+
+/* ─ 알라딘 API fetch 함수 (주석 해제 후 사용) ─
+async function fetchAladinBooks(query) {
+  // CORS 이슈로 인해 실제 사용 시에는 백엔드 프록시 서버가 필요합니다.
+  // 아래는 구조 예시입니다.
+  const url = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${ALADIN_TTB_KEY}&Query=${encodeURIComponent(query)}&Output=js&Version=20131101&MaxResults=5`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.item; // 도서 배열
+}
+*/
+
+// 샘플 시뮬레이션 (API 없이 데모 용도)
+function simulateSearch(query, grid, loading, btn) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const matched = SIMILAR_BOOKS_SAMPLE[query] || SIMILAR_BOOKS_SAMPLE['기본'];
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;margin-bottom:8px;font-size:13px;color:var(--text-sub);">
+          🔖 "<strong style="color:var(--text)">${query}</strong>" 와 유사한 책이에요
+          <span style="margin-left:8px;font-size:11px;background:var(--tag-bg);padding:2px 8px;border-radius:100px;">샘플 데이터</span>
+        </div>
+        ${matched.map(book => `
+          <div class="book-card">
+            <div class="book-cover-placeholder">${book.emoji}</div>
+            <div class="book-info">
+              <span class="match-score">유사도 ${book.similarity}%</span>
+              <div class="book-title">${book.title}</div>
+              <div class="book-author">${book.author}</div>
+              <div style="font-size:12px;color:var(--text-sub);margin-top:4px;">${book.desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      `;
+      loading.style.display = 'none';
+      btn.disabled = false;
+      resolve();
+    }, 1600);
+  });
+}
+
+// 엔터 키로 검색
+document.getElementById('bookSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchSimilarBooks();
+});
+
+/* ════════════════════════════════════════════
+   기능 4: 감정 일기 북테라피
+════════════════════════════════════════════ */
+const diaryInput = document.getElementById('diaryInput');
+const charCount = document.getElementById('charCount');
+
+diaryInput.addEventListener('input', () => {
+  charCount.textContent = diaryInput.value.length + '자';
+});
+
+function analyzeDiary() {
+  const text = diaryInput.value.trim();
+  if (text.length < 5) {
+    alert('감정을 좀 더 적어주세요 (5자 이상)');
+    return;
+  }
+
+  // 키워드 매칭으로 감정 분석
+  let maxMatch = 0;
+  let matchedEmotion = null;
+
+  EMOTION_MAP.forEach(entry => {
+    const matchCount = entry.keywords.filter(kw => text.includes(kw)).length;
+    if (matchCount > maxMatch) {
+      maxMatch = matchCount;
+      matchedEmotion = entry;
+    }
+  });
+
+  // 매칭 없으면 기본값(차분한)
+  if (!matchedEmotion) {
+    matchedEmotion = {
+      emotion: '차분함·평온',
+      icon: '🌿',
+      color: '#7C9E8F',
+      gradient: 'linear-gradient(135deg, #f0f5f3 0%, #d5e6e0 100%)',
+      themeLabel: '포근한 세이지 테마로 변경됨',
+      message: '오늘의 마음이 잔잔한 하루네요. 조용히 책 한 권과 함께하는 밤은 어떨까요?',
+      books: [
+        { title: '아몬드', author: '손원평', emoji: '🌰', desc: '잔잔하게 읽히는 성장 소설' },
+        { title: '달러구트 꿈 백화점', author: '이미예', emoji: '🏪', desc: '포근한 상상력이 담긴 판타지' },
+        { title: '나미야 잡화점의 기적', author: '히가시노 게이고', emoji: '✉️', desc: '마음이 따뜻해지는 이야기' }
+      ]
+    };
+  }
+
+  // 배경 색상 변경 (감정 테마)
+  document.documentElement.style.setProperty('--emotion-bg', matchedEmotion.gradient);
+
+  // 결과 표시
+  const resultDiv = document.getElementById('emotionResult');
+  document.getElementById('emotionIcon').textContent = matchedEmotion.icon;
+  document.getElementById('emotionLabel').textContent = matchedEmotion.emotion;
+  document.getElementById('emotionText').textContent = matchedEmotion.message;
+  document.getElementById('emotionBar').style.background = matchedEmotion.color;
+  document.getElementById('emotionThemeLabel').textContent = '🎨 ' + matchedEmotion.themeLabel;
+
+  const booksDiv = document.getElementById('emotionBooks');
+  booksDiv.innerHTML = matchedEmotion.books.map(book => `
+    <div class="book-card">
+      <div class="book-cover-placeholder">${book.emoji}</div>
+      <div class="book-info">
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+        <div style="font-size:12px;color:var(--text-sub);margin-top:4px;">${book.desc}</div>
+      </div>
+    </div>
+  `).join('');
+
+  resultDiv.classList.add('visible');
+
+  // 결과 영역으로 스크롤
+  setTimeout(() => {
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+</script>
+</body>
+</html>
